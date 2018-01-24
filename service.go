@@ -46,13 +46,13 @@ func (s *Service) registerLoop() {
 	//Initial delay is lower
 	time.Sleep(1 * time.Second)
 	for {
-		if err := s.cl.SetMetadata(s.baseuri+"/"+s.name, "lastalive", time.Now().Format(time.RFC3339Nano)); err != nil {
-			if s.errorHandler != nil {
-				s.errorHandler(err)
-			} else {
-				handleErr(err)
+		err := s.cl.SetMetadata(s.baseuri+"/"+s.name, "lastalive", time.Now().Format(time.RFC3339Nano))
+		handleErr(err)
+		s.mu.Lock()
+		for _, i := range s.ifaces {
+			if i.auto {
+				i.updateRegistration()
 			}
-		} else {
 			s.mu.Lock()
 			for _, i := range s.ifaces {
 				if i.auto {
@@ -132,8 +132,9 @@ func (ifc *Interface) GetMetadataKey(key string) (string, error) {
 	dat, _, err := ifc.svc.cl.GetMetadataKey(ifc.FullURI(), key)
 	return dat.Value, err
 }
-func (ifc *Interface) updateRegistration() error {
-	return ifc.SetMetadata("lastalive", time.Now().Format(time.RFC3339Nano))
+func (ifc *Interface) updateRegistration() {
+	err := ifc.SetMetadata("lastalive", time.Now().Format(time.RFC3339Nano))
+	handleErr(err)
 }
 func (ifc *Interface) PublishSignal(signal string, poz ...PayloadObject) error {
 	if !ifc.auto && time.Now().Sub(ifc.last) > RegistrationInterval*time.Second {
