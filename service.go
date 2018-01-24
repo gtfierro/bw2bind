@@ -56,14 +56,7 @@ func (s *Service) registerLoop() {
 			s.mu.Lock()
 			for _, i := range s.ifaces {
 				if i.auto {
-					if err := i.updateRegistration(); err != nil {
-						if s.errorHandler != nil {
-							s.errorHandler(err)
-						} else {
-							handleErr(err)
-						}
-						break
-					}
+					i.updateRegistration()
 				}
 			}
 			s.mu.Unlock()
