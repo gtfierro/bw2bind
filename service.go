@@ -53,14 +53,8 @@ func (s *Service) registerLoop() {
 			if i.auto {
 				i.updateRegistration()
 			}
-			s.mu.Lock()
-			for _, i := range s.ifaces {
-				if i.auto {
-					i.updateRegistration()
-				}
-			}
-			s.mu.Unlock()
 		}
+		s.mu.Unlock()
 		time.Sleep(RegistrationInterval * time.Second)
 	}
 }
